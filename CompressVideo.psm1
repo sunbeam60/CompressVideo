@@ -282,15 +282,15 @@ function Compress-Video {
     )
 
     if( $Version ) {
-        Write-Host "1.0001"
-        exit
+        Write-Host "1.0005"
+        return
     }
 
     # find ffmpeg and ffprobe
     $ffmpeg_full_path = GetBinaryLocation $ffMpegLocation "ffmpeg"
     if( $ffmpeg_full_path.Length -eq 0 ) {
         Write-Error "ffmpeg wasn't found. Exiting."
-        exit
+        return
     }
     Write-Verbose "Using ffmpeg at $ffmpeg_full_path"
 
@@ -299,7 +299,7 @@ function Compress-Video {
     $ffprobe_full_path = GetBinaryLocation $ffProbeLocation "ffprobe"
     if( $ffprobe_full_path.Length -eq 0 ) {
         Write-Error "ffprobe wasn't found. Exiting."
-        exit
+        return
     }
     Write-Verbose "Using ffprobe at $ffprobe_full_path"
 
@@ -333,7 +333,7 @@ function Compress-Video {
     # the code below handles no files gracefully, but it's not the most user-friendly to say nothing, so make sure to inform the user 
     if( $files.Length -eq 0 ) {
         Write-Warning "No files to process. Exiting."
-        Exit
+        return
     }
 
     # iterate over each files
