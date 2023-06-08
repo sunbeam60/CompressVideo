@@ -179,6 +179,8 @@ function ProcessFailure {
         [string]$ErrorLogFullPath
     )
 
+    Write-Debug "--> ProcessFailure"
+
     $error_log_length = (Get-Item -Path $ErrorLogFullPath -ErrorAction SilentlyContinue).Length
 
     # if we've had an error, reprint the error log
@@ -188,9 +190,11 @@ function ProcessFailure {
     if( ($Process.ExitCode -gt 0) ) {
         $error_log = Get-Content $ErrorLogFullPath -ErrorAction SilentlyContinue
         foreach($line in $error_log) {Write-Warning ($Process.ProcessName + ": " + $line)}
+        Write-Debug ("<-- " + $Process.ExitCode)
         return $true
     }
 
+    Write-Debug "<-- ProcessFailure"
     return $false;
 
 }
@@ -436,17 +440,21 @@ function Compress-Video {
             if (Test-Path $log_file_output -PathType Leaf) {
                 # Read the captured output from the file
                 $duration_seconds = Get-Content -Path $log_file_output
+                Write-Debug "ffprobe returned video length of $duration_seconds"
             } else {
                 Write-Warning "Couldn't determine input file lenght. Progress indicators will not be correct."
                 $duration_seconds = 1.0        
             }    
 
+            Write-Debug "Deleting previous progress file at $log_file_progress."
             # kill previous progress file so it doesn't pollute progress values on the next pass (a new progress file isn't written for a little while
             Remove-Item $log_file_progress -ErrorAction SilentlyContinue
             
             # we work in two passes - the first helps build information for a better encode in pass 2
             # pass 1
+            Write-Debug "Pass 1 starting."
             $ffmpeg_args = "-i", """$full_file_name_original""", "-loglevel", "warning", "-vcodec", $VideoEncoder, "-b:v", ($VideoQuality.ToString() + "k"), "-pass", "1", "-an", "-f", "null", "-y", "-progress", $log_file_progress, "-passlogfile", $pass1_log_file_prefix, """$pass1_temporary_file"""
+            DebugPrintArgs $ffmpeg_args
             [System.Diagnostics.Process]$ffmpeg_process = Start-Process -FilePath """$ffmpeg_full_path""" $ffmpeg_args -NoNewWindow -PassThru -RedirectStandardOutput $log_file_output -RedirectStandardError $log_file_error
 
             # wait for pass 1 to finish
@@ -455,7 +463,6 @@ function Compress-Video {
             # move to next file if we couldn't read this one (we might have been supplied a file that wasn't a video)
             if( ProcessFailure $ffmpeg_process $log_file_error ) {
                 $file_outcome.Outcome = [ConversionOutcome]::Error
-                Write-Output $file_outcome
                 continue
             }
 
@@ -463,7 +470,9 @@ function Compress-Video {
             Remove-Item $log_file_progress -ErrorAction SilentlyContinue
             
             #pass 2
+            Write-Debug "Pass 2 starting."
             $ffmpeg_args = "-i", """$full_file_name_original""", "-loglevel", "warning", "-vcodec", $VideoEncoder, "-b:v", ($VideoQuality.ToString() + "k"), "-pass", "2", "-c:a", $AudioEncoder, "-b:a", ($AudioQuality.ToString() + "k"), "-progress", $log_file_progress, "-passlogfile", $pass1_log_file_prefix, """$full_file_name_new"""
+            DebugPrintArgs $ffmpeg_args
             $ffmpeg_process = Start-Process -FilePath """$ffmpeg_full_path""" $ffmpeg_args -NoNewWindow -PassThru -RedirectStandardOutput $log_file_output -RedirectStandardError $log_file_error
 
             # wait for pass 2 to finish
