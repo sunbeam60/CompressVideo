@@ -4,13 +4,13 @@
 Batch convert video files using ffmpeg.
 
 .DESCRIPTION
-This script processes input video files using ffmpeg and ffprobe. Typical use-case is converting, compressing or repacking a large batch of video files using a new set of common parameters.
+This script processes input video files using ffmpeg and ffprobe. Typical use-case is converting, compressing or repacking a large batch of video files using a set of common parameters.
 
-As the script relies on ffmpeg to do the work, it is able to do a subset of what ffmpeg can do. This means it can change media container amd it can re-encode into a different codec (both audio and video), at different levels of quality (always degrading the visual output ever so slightly for every re-encode).
+As the script relies on ffmpeg to do the work, it is able to do a subset of what ffmpeg can do. This means it can change media container amd it can re-encode into a different codec (both audio and video), at different levels of quality.
 
 In addition, the script outputs progress information for long encodes. 
 
-The script is a good "PowerShell" citizen; it can take files from a pipe and it can output to a downstream pipe. In addition, you can run the script alone.
+The script is a good "PowerShell" citizen; it can take files from a pipe and it can output to a downstream pipe. In addition, you can run the script alone, specifying wildcards and individual files to process.
 
 Encoding is always done in 2 passes to optimise quality.
 
@@ -222,8 +222,7 @@ function GetFileLine {
         OutputFile = $OutputFile
     }
 
-    # file complete
-    Write-Output $output_file_line
+    return $output_file_line
 }
 
 function GetBinaryLocation {
