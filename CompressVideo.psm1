@@ -152,6 +152,7 @@ function WriteProgress {
     # basically once the process has finished, many things about the process is no longer available, unless cached while the process is alive
     $handle = $Process.Handle
     $name = $Process.Name
+    $start_time = Get-Date
 
     # wait for pass 1 to finish
     while (!$Process.HasExited) {
@@ -160,7 +161,13 @@ function WriteProgress {
         if ($progress_captures) {
             $current_time_s = Max -value ($progress_captures[-1].Matches.Groups[1].Value / 10000) -maxValue 0.00
             $completed_percent = Clamp -value ($current_time_s / $DurationSeconds) -minValue 1 -maxValue 100
-            if( !$Quiet ) {Write-Progress -Activity ($FileNameOriginal + " ==> " + $FileNameNew) -PercentComplete $completed_percent -Status $Activity}
+            if( !$Quiet ) {
+                # figure out how long has passed, so we can calculate how long we have left
+                $elapsed_time = (Get-Date) - $start_time
+                $time_remaining = ($elapsed_time.TotalSeconds / $completed_percent) * (100 - $completed_percent)
+                $activity_message = $Activity + " (" + ('{0:hh\:mm\:ss}' -f ([TimeSpan]::FromSeconds($time_remaining))) + ")"
+                Write-Progress -Activity ($FileNameOriginal + " ==> " + $FileNameNew) -PercentComplete $completed_percent -Status $activity_message
+            }
 
             # ffmpeg doesn't write progress more often than 0.5s ... so there's no need to let the script run crazy waiting for an update that never comes
             Start-Sleep -Milliseconds 500
@@ -334,7 +341,7 @@ function Compress-Video {
         Write-Debug "--> Compress-Video"
 
         if( $Version ) {
-            Write-Host "1.0007"
+            Write-Host "1.0014"
             return
         }
     
@@ -342,7 +349,7 @@ function Compress-Video {
         $ffmpeg_full_path = GetBinaryLocation $ffMpegLocation "ffmpeg"
         Write-Debug "ffmpeg_full_path: $ffmpeg_full_path"
         if( $ffmpeg_full_path.Length -eq 0 ) {
-            Write-Error "ffmpeg wasn't found. Exiting."
+            throw "ffmpeg wasn't found. Exiting."
             return
         }
         Write-Verbose "Using ffmpeg at $ffmpeg_full_path"
@@ -351,8 +358,7 @@ function Compress-Video {
         if( $ffProbeLocation -eq "") {$ffProbeLocation = $ffMpegLocation}
         $ffprobe_full_path = GetBinaryLocation $ffProbeLocation "ffprobe"
         if( $ffprobe_full_path.Length -eq 0 ) {
-            Write-Error "ffprobe wasn't found. Exiting."
-            return
+            throw "ffprobe wasn't found. Exiting."
         }
         Write-Verbose "Using ffprobe at $ffprobe_full_path"
     
