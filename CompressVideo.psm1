@@ -10,7 +10,7 @@ As the script relies on ffmpeg to do the work, it is able to do a subset of what
 
 In addition, the script outputs progress information for long encodes. 
 
-The script is a good "PowerShell" citizen; it can take files from a pipe and it can output to a downstream pipe. In addition, you can run the script alone, specifying wildcards and individual files to process.
+The script is a decent PowerShell citizen; it can take files from a pipe and it can output to a downstream pipe. In addition, you can run the script alone, specifying wildcards and individual files to process.
 
 Encoding is always done in 2 passes to optimise quality.
 
@@ -28,7 +28,7 @@ A percetage value between 0 and 99. Output files that don't show the required le
 
 .PARAMETER VideoEncoder
 The video encoder library to be used by ffmpeg. Depending on the build of ffmpeg, some encoders may not be available. Run "ffmpeg -encoders" for the full list.
-Common parameters here are libx264, libx265 or libaom-av1. Default: libx264.
+Common parameters here are libx264, libx265 or libsvtav1. Not all ffmpeg encoders will work here; for example if an encoder doesn't support 2-pass encoding, it cannot be used. Default: libx264.
 
 .PARAMETER VideoQuality
 The target kilobits/second for the video encode. The higher the value, the better the quality and the larger the size of the output file. Default: 2000.
@@ -41,10 +41,10 @@ Common parameters here are aac, mp3 or opus. Default: aac.
 The target kilobits/second for the audio encode. The higher the value, the better the quality and the larger the size of the output file. Default: 128.
 
 .PARAMETER ffMpegLocation
-The directory where to find the ffmpeg binary which is required by this script. If not supplied, the script searches in the same directory as the script and in the system path for a ffmpeg binary. If ffmpeg cannot be located, the script refuses to run.
+The directory where to find the ffmpeg binary which is required by this script. If not supplied, the script searches in the same directory as the script, then in the system path for a ffmpeg binary. If ffmpeg cannot be located, the script refuses to run.
 
 .PARAMETER ffProbeLocation
-The directory where to find the ffprobe binary which is required by this script. If not supplied, the script searches in the same directory as the script, in the system path for a ffmpeg binary and in the same directory as where it found the ffmpeg executable. If ffprobe cannot be located, the script refuses to run.
+The directory where to find the ffprobe binary which is required by this script. If not supplied, the script searches in the same directory as the script, then in the system path for a ffmpeg binary and in the same directory as where it found the ffmpeg executable. If ffprobe cannot be located, the script refuses to run.
 
 .PARAMETER inputFiles
 A set of relative of absolute paths to files that you wish the script to process.
@@ -265,16 +265,29 @@ function GetBinaryLocation {
         }
         Write-Debug "candidatePath is now $candidatePath"
     }
+
+    Write-Debug ("Testing for binary at suggested location " + $candidatePath)
     if (Test-Path -Path $candidatePath -PathType Leaf -ErrorAction SilentlyContinue) {
         Write-Debug "Using binary found at suggested location."
         Write-Debug "<-- $candidatePath"
         return $candidatePath
     }
 
-    # can we find the binary next to us?
+    # can we find the binary next to the script module?
     $candidatePath = ($PSScriptRoot + [System.IO.Path]::DirectorySeparatorChar + $BinaryName + ($IsWindows ? ".exe" : ""))    
+    Write-Debug ("Testing for binary next to script module at " + $candidatePath)
     if (Test-Path -Path $candidatePath -PathType Leaf -ErrorAction SilentlyContinue) {
         Write-Debug "Using binary found next to script."
+        Write-Debug "<-- $candidatePath"
+        return $candidatePath
+    }
+
+    # can we find the binary in the folder where we were called from?
+    $calling_dir = Get-Location
+    $candidatePath = ($calling_dir.Path + [System.IO.Path]::DirectorySeparatorChar + $BinaryName + ($IsWindows ? ".exe" : ""))    
+    Write-Debug ("Testing for binary in calling directory at " + $candidatePath)
+    if (Test-Path -Path $candidatePath -PathType Leaf -ErrorAction SilentlyContinue) {
+        Write-Debug "Using binary found in calling directory."
         Write-Debug "<-- $candidatePath"
         return $candidatePath
     }
@@ -285,6 +298,8 @@ function GetBinaryLocation {
         Write-Debug "Using binary found in the path."
         Write-Debug "<-- $candidatePath"
         return $binaryInPath.Source
+    } else {
+        Write-Debug "$BinaryName wasn't found in path."
     }
     
     # give up
@@ -341,7 +356,7 @@ function Compress-Video {
         Write-Debug "--> Compress-Video"
 
         if( $Version ) {
-            Write-Host "1.0014"
+            Write-Host "1.0015"
             return
         }
     
