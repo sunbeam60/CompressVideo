@@ -296,7 +296,7 @@ function GetBinaryLocation {
     $binaryInPath = Get-Command -Name $BinaryName -ErrorAction SilentlyContinue
     if( $binaryInPath ) {
         Write-Debug "Using binary found in the path."
-        Write-Debug "<-- $candidatePath"
+        Write-Debug ("<-- " + $binaryInPath.Source)
         return $binaryInPath.Source
     } else {
         Write-Debug "$BinaryName wasn't found in path."
