@@ -1,7 +1,7 @@
 
 <#
 .SYNOPSIS
-Batch convert video files using ffmpeg.
+Batch convert video files using ffmpeg. Don't use this, use StartAutomating/RoughDraft instead.
 
 .DESCRIPTION
 This script processes input video files using ffmpeg and ffprobe. Typical use-case is converting, compressing or repacking a large batch of video files using a set of common parameters.
@@ -24,7 +24,7 @@ Don't set output file dates to match input file dates. Default: $false.
 The extension, and thus container, for the output files. Default: mp4.
 
 .PARAMETER RequiredImprovement
-A percetage value between 0 and 99. Output files that don't show the required level of space saving are discarded. Default: 10.
+A percentage value between 0 and 99. Output files that don't show the required level of space saving are discarded. Default: 10.
 
 .PARAMETER VideoEncoder
 The video encoder library to be used by ffmpeg. Depending on the build of ffmpeg, some encoders may not be available. Run "ffmpeg -encoders" for the full list.

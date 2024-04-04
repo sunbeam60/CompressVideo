@@ -1,5 +1,5 @@
 # CompressVideo
-A pwsh wrapper around ffmpeg, used mainly for personal video archival batching. Might be useful for others.
+A pwsh wrapper around ffmpeg, used mainly for personal video archival batching. Might be useful for others, but most likely you should use StartAutomating/RoughDraft instead.
 
 .SYNOPSIS
 Batch convert video files using ffmpeg.
