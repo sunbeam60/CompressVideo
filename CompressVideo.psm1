@@ -59,9 +59,6 @@ Using the ffmpeg binary found in "C:\Program Files\ffmpeg", all mp4 files in the
 
 #>
 
-
-
-
 function Clamp {
     param (
         [Parameter(Position = 0, Mandatory = $true)]
