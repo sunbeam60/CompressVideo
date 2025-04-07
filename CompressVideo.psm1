@@ -41,10 +41,10 @@ Common parameters here are aac, mp3 or opus. Default: aac.
 The target kilobits/second for the audio encode. The higher the value, the better the quality and the larger the size of the output file. Default: 128.
 
 .PARAMETER ffMpegLocation
-The directory where to find the ffmpeg binary which is required by this script. If not supplied, the script searches in the same directory as the script, then in the system path for a ffmpeg binary. If ffmpeg cannot be located, the script refuses to run.
+The directory where to find the ffmpeg binary which is required by this script. If not supplied, the script searches in the same directory as the script, then in the system path for a ffmpeg binary, then in the default binary installation location (e.g. "Program Files"). If ffmpeg cannot be located, the script refuses to run.
 
 .PARAMETER ffProbeLocation
-The directory where to find the ffprobe binary which is required by this script. If not supplied, the script searches in the same directory as the script, then in the system path for a ffmpeg binary and in the same directory as where it found the ffmpeg executable. If ffprobe cannot be located, the script refuses to run.
+The directory where to find the ffprobe binary which is required by this script. If not supplied, the script searches in the same directory as the script, then in the system path for a ffmpeg binary, then in the default binary installation location (e.g. "Program Files") and in the same directory as where it found the ffmpeg executable. If ffprobe cannot be located, the script refuses to run.
 
 .PARAMETER inputFiles
 A set of relative of absolute paths to files that you wish the script to process.
