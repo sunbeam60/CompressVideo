@@ -239,7 +239,10 @@ function GetBinaryLocation {
         [string]$SuggestedLocation,
 
         [Parameter(Mandatory=$true, Position=1)]
-        [string]$BinaryName
+        [string]$BinaryName,
+
+        [Parameter(Mandatory=$false, Position=2)]
+        [string]$installDirName
     )
 
     Write-Debug "--> GetBinaryLocation"
@@ -301,6 +304,19 @@ function GetBinaryLocation {
     } else {
         Write-Debug "$BinaryName wasn't found in path."
     }
+
+    # if we were given an install dir folder name, let's see if we can find it there
+    if( $installDirName.Length -gt 0 ) {
+        $candidatePath = ($env:ProgramFiles + [System.IO.Path]::DirectorySeparatorChar + $installDirName + [System.IO.Path]::DirectorySeparatorChar + $BinaryName + ($IsWindows ? ".exe" : ""))    
+        Write-Debug ("Testing for binary in program files at " + $candidatePath)
+        if (Test-Path -Path $candidatePath -PathType Leaf -ErrorAction SilentlyContinue) {
+            Write-Debug "Using binary found in program files."
+            Write-Debug "<-- $candidatePath"
+            return $candidatePath
+        }   
+    } else {
+        Write-Debug "Not given an installDirName so cannot test in $env:ProgramFiles"
+    }
     
     # give up
     Write-Debug "Couldn't determine a location for $BinaryName"
@@ -361,7 +377,7 @@ function Compress-Video {
         }
     
         # find ffmpeg and ffprobe
-        $ffmpeg_full_path = GetBinaryLocation $ffMpegLocation "ffmpeg"
+        $ffmpeg_full_path = GetBinaryLocation $ffMpegLocation "ffmpeg" "ffmpeg"
         Write-Debug "ffmpeg_full_path: $ffmpeg_full_path"
         if( $ffmpeg_full_path.Length -eq 0 ) {
             throw "ffmpeg wasn't found. Exiting."
@@ -371,7 +387,7 @@ function Compress-Video {
     
         # if we haven't been supplied an ffProbe location, try at the same location as the ffMpegLocation
         if( $ffProbeLocation -eq "") {$ffProbeLocation = $ffMpegLocation}
-        $ffprobe_full_path = GetBinaryLocation $ffProbeLocation "ffprobe"
+        $ffprobe_full_path = GetBinaryLocation $ffProbeLocation "ffprobe" "ffmpeg"
         if( $ffprobe_full_path.Length -eq 0 ) {
             throw "ffprobe wasn't found. Exiting."
         }
@@ -491,10 +507,10 @@ function Compress-Video {
             
             #pass 2
             Write-Debug "Pass 2 starting."
-            $ffmpeg_args = "-i", """$full_file_name_original""", "-loglevel", "warning", "-vcodec", $VideoEncoder, "-b:v", ($VideoQuality.ToString() + "k"), "-pass", "2", "-c:a", $AudioEncoder, "-b:a", ($AudioQuality.ToString() + "k"), "-progress", $log_file_progress, "-passlogfile", $pass1_log_file_prefix, """$full_file_name_new"""
+            $ffmpeg_args = "-i", """$full_file_name_original""", "-loglevel", "warning", "-vcodec", $VideoEncoder, "-b:v", ($VideoQuality.ToString() + "k"), "-pass", "2", "-c:a", $AudioEncoder, "-b:a", ($AudioQuality.ToString() + "k"), "-map_metadata", "0", "-progress", $log_file_progress, "-passlogfile", $pass1_log_file_prefix, """$full_file_name_new"""
             DebugPrintArgs $ffmpeg_args
             $ffmpeg_process = Start-Process -FilePath """$ffmpeg_full_path""" $ffmpeg_args -NoNewWindow -PassThru -RedirectStandardOutput $log_file_output -RedirectStandardError $log_file_error
-
+            
             # wait for pass 2 to finish
             WriteProgress "Encode" $ffmpeg_process $short_file_name_original $short_file_name_new $log_file_progress $duration_seconds
 
@@ -505,7 +521,7 @@ function Compress-Video {
                 continue
             }
 
-            # inspect the new file to compare against old file
+            # inspect the new file to compare against old files
             $old_file = Get-Item $full_file_name_original
             $new_file = Get-Item $full_file_name_new
 
