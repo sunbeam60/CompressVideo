@@ -1,5 +1,5 @@
 # CompressVideo
-A pwsh wrapper around ffmpeg, used mainly for personal video archival batching. Might be useful for others.
+A pwsh wrapper around ffmpeg, used mainly for personal video archival batching. Might be useful for others, but most likely you should use StartAutomating/RoughDraft instead.
 
 .SYNOPSIS
 Batch convert video files using ffmpeg.
@@ -55,5 +55,5 @@ You can supply wildcards as well as individual files.
 Express output file paths as absolute, full paths. Default: $false.
 
 .EXAMPLE
-.\convert.ps1 -ffMpegLocation "C:\Program Files\ffmpeg\" -VideoEncoder "libx265" -VideoQuality 3000 -Extension "mkv" *.mp4
+Compress-Video -ffMpegLocation "C:\Program Files\ffmpeg\" -VideoEncoder "libx265" -VideoQuality 3000 -Extension "mkv" *.mp4
 Using the ffmpeg binary found in "C:\Program Files\ffmpeg", all mp4 files in the current folder are compressed into h265 (HEVC) at 3000 kbit/seconds. The output files are stored in a matroska container.
