@@ -1,4 +1,4 @@
-![image](https://github.com/user-attachments/assets/001a6c2e-578f-442e-976c-53c4b838ed8e)
+![image](https://github.com/user-attachments/assets/9c1aec5c-62ae-4273-8c74-3c3ca5685428)
 
 # CompressVideo
 A pwsh wrapper around ffmpeg, used mainly for personal video archival batching. Might be useful for others, but most likely you should use StartAutomating/RoughDraft instead.
